@@ -1,218 +1,57 @@
-# --- Project Setup Commands ---
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate the virtual environment (for Windows PowerShell)
-venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# --- Git Initialization Commands ---
-
-# Initialize Git repository
-git init
-
-# Add remote repository
-git remote add origin https://github.com/EMON56GIF/Ai-voice-assistant-python.git
-
-# Check remote repositories
-git remote -v
-
-# --- .gitignore setup ---
-
-# Created .gitignore file and added the following:
-# venv/, __pycache__/, *.pyc, .env, *.log, etc.
-
-# --- Git Commit and Push Commands ---
-
-# Stage all files
-git add .
-
-# Commit with a message
-git commit -m "Initial commit - AI Voice Assistant setup"
-
-# Push to main branch
-git branch -M main
-git push -u origin main
-
-# --- Other Useful Commands ---
-
-# Check current branch and status
-git status
-git branch
-
-# Change terminal to Git Bash in VS Code
-# (View → Terminal → Down Arrow → Select Default Profile → Git Bash)
-
-# Run the main program
-python main.py
-
-# --- Fixing Common Errors ---
-# If you get 'remote origin already exists', use:
-# git remote remove origin
-# git remote add origin https://github.com/EMON56GIF/Ai-voice-assistant-python.git
-
-
-
-# --- Python Environment Setup ---
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate the virtual environment (PowerShell)
-venv\Scripts\activate
-
-# Activate the virtual environment (Git Bash)
-source venv/Scripts/activate
-
-# Install required packages
-pip install sounddevice numpy requests google-generativeai python-dotenv
-
-# Run the voice assistant
-python main.py
-
-# --- Optional Utilities ---
-
-# Freeze dependencies to a file
-pip freeze > requirements.txt
-
-# Deactivate virtual environment
-deactivate
-
-# --- Common Fixes ---
-
-# If PyAudio not working (use alternative libraries)
-pip install sounddevice numpy
-
-# Check Python version
-python --version
-
-# Clear temporary cache (if needed)
-rmdir /s /q __pycache__
-
-# Change VS Code default terminal to Git Bash
-# → View → Terminal → Down Arrow beside '+' → Select Default Profile → Git Bash
-
-
-# -------------------------------
-# 🧠 Project Setup & Environment
-# -------------------------------
-
-# Create new project folder
-mkdir Ai-voice-assistant-python
-cd Ai-voice-assistant-python
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate virtual environment (PowerShell)
-venv\Scripts\activate
-
-# OR if using Git Bash
-source venv/Scripts/activate
-
-# -------------------------------
-# 📦 Install Dependencies
-# -------------------------------
-
-# Core libraries
-pip install sounddevice numpy requests google-generativeai python-dotenv
-
-# For speech recognition (alternative to PyAudio)
-pip install SpeechRecognition sounddevice
-
-# Optional TTS (Text to Speech)
-pip install pyttsx3
-
-# Check installation
-pip list
-
-# -------------------------------
-# ⚙️ Configuration & Environment Files
-# -------------------------------
-
-# Create .env file for API keys
-# Example:
-# GEMINI_API_KEY=your_gemini_key_here
-# OPENWEATHER_API_KEY=your_openweather_key_here
-
-# Verify .env variables
-echo $env:GEMINI_API_KEY     # PowerShell
-echo $GEMINI_API_KEY          # Bash
-
-# -------------------------------
-# 📂 Project Structure
-# -------------------------------
-
-# Inside Ai-voice-assistant-python/
-#   ├── main.py
-#   ├── config.py
-#   ├── .env
-#   ├── .gitignore
-#   ├── modules/
-#   │   ├── __init__.py
-#   │   ├── listen.py
-#   │   └── speak.py
-#   ├── venv/
-#   ├── LICENSE
-#   └── README.md
-
-# -------------------------------
-# 🧩 Run and Test the Assistant
-# -------------------------------
-
-# Run the main script
-python main.py
-
-# If using uvicorn or similar (alternative for API server)
-# uv run main.py
-
-# -------------------------------
-# 🧰 Fix Common Errors
-# -------------------------------
-
-# Fix "PyAudio not found" error
-# → Alternative libraries already installed (sounddevice + numpy)
-
-# Fix permission error on temp audio files
-pip install pydub
-# or modify listen() function to close stream before deleting temp file
-
-# Fix “Could not recognize speech”
-# Check microphone permissions and input device configuration
-
-# Check Python version
-python --version
-
-# Reinstall pip if corrupted
-python -m ensurepip --upgrade
-
-# -------------------------------
-# 🧽 Cleanup
-# -------------------------------
-
-# Remove cache files
-rmdir /s /q __pycache__
-
-# Remove old temporary files
-del /q %TEMP%\*.wav
-
-# Deactivate virtual environment
-deactivate
-
-# -------------------------------
-# 🧩 VS Code Setup
-# -------------------------------
-
-# Set Python interpreter to venv
-# → Ctrl + Shift + P → “Python: Select Interpreter” → choose venv path
-
-# Change terminal to Git Bash
-# → Terminal → Select Default Profile → Git Bash → Restart VS Code
-
-# Run project again
-python main.py
-
-
+annotated-types==0.7.0
+audioop-lts==0.2.2
+beautifulsoup4==4.14.2
+cachetools==6.2.1
+certifi==2025.10.5
+cffi==2.0.0
+charset-normalizer==3.4.4
+colorama==0.4.6
+comtypes==1.4.13
+docopt==0.6.2
+google-ai-generativelanguage==0.6.15
+google-api-core==2.25.2
+google-api-python-client==2.185.0
+google-auth==2.41.1
+google-auth-httplib2==0.2.0
+google-generativeai==0.8.5
+googleapis-common-protos==1.71.0
+grpcio==1.76.0
+grpcio-status==1.71.2
+httplib2==0.31.0
+idna==3.11
+Js2Py==0.74
+numpy==2.3.4
+packaging==25.0
+pip==25.2
+pipwin==0.5.2
+proto-plus==1.26.1
+protobuf==5.29.5
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
+pycparser==2.23
+pydantic==2.12.3
+pydantic_core==2.41.4
+pyjsparser==2.7.1
+pyparsing==3.2.5
+pypiwin32==223
+PyPrind==2.11.3
+pySmartDL==1.3.4
+python-dotenv==1.2.1
+pyttsx3==2.99
+pywin32==311
+requests==2.32.5
+rsa==4.9.1
+scipy==1.16.2
+six==1.17.0
+sounddevice==0.5.3
+soupsieve==2.8
+SpeechRecognition==3.14.3
+standard-aifc==3.13.0
+standard-chunk==3.13.0
+tqdm==4.67.1
+typing_extensions==4.15.0
+typing-inspection==0.4.2
+tzdata==2025.2
+tzlocal==5.3.1
+uritemplate==4.2.0
+urllib3==2.5.0

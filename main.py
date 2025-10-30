@@ -1,136 +1,126 @@
 import os
+import io
+import wave
+import numpy as np
 import requests
 import sounddevice as sd
-import numpy as np
-import tempfile
-from scipy.io.wavfile import write
-from dotenv import load_dotenv
-from google import generativeai as genai
-from modules.speak import speak
+import speech_recognition as sr
 import pyttsx3
+from dotenv import load_dotenv
+import google.generativeai as genai
 
-# -------------------------------------
-# 1️⃣ Load environment variables
-# -------------------------------------
+
+# -------------------------------
+# 1️⃣ Load Environment Variables
+# -------------------------------
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
-
-if not GEMINI_API_KEY:
-    raise ValueError("❌ Gemini API key missing in .env file!")
-if not OPENWEATHER_API_KEY:
-    print("⚠️ Weather API key not found — weather requests will be disabled.")
-
-# -------------------------------------
-# 2️⃣ Setup Gemini model
-# -------------------------------------
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
 
-# -------------------------------------
-# 3️⃣ Voice setup
-# -------------------------------------
-engine = pyttsx3.init()
-engine.setProperty('rate', 175)
-engine.setProperty('volume', 0.9)
+# Choose Gemini model
+model = genai.GenerativeModel("models/gemini-2.5-flash")
+
+# -------------------------------
+# 2️⃣ Initialize Text-to-Speech
+# -------------------------------
+engine = pyttsx3.init('sapi5')
+engine.setProperty('rate', 170)
+engine.setProperty('volume', 1.0)
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id if len(voices) > 1 else voices[0].id)
+if len(voices) > 0:
+    engine.setProperty('voice', voices[0].id)  # male or female depending on voice[1]
 
-def speak(text):
-    print(f"🧠 Assistant: {text}")
-    engine.say(text)
-    engine.runAndWait()
+# -------------------------------
+# 3️⃣ Listen Function
+# -------------------------------
+def listen_alt(duration=5, samplerate=16000):
+    print("\n🎙️ Listening... Speak now!")
 
-# -------------------------------------
-# 4️⃣ Listen to user (speech to text)
-# -------------------------------------
-def listen():
-    fs = 16000
-    duration = 5
-    speak("I'm listening...")
-    print("🎧 Listening... Speak now.")
-
-    audio = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='float32')
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
     sd.wait()
 
-    temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-    write(temp_wav.name, fs, (audio * 32767).astype(np.int16))
+    with io.BytesIO() as wav_buffer:
+        with wave.open(wav_buffer, 'wb') as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(samplerate)
+            wf.writeframes(audio_data.tobytes())
+        wav_data = wav_buffer.getvalue()
+
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(io.BytesIO(wav_data)) as source:
+        audio = recognizer.record(source)
 
     try:
-        import speech_recognition as sr
-        r = sr.Recognizer()
-        with sr.AudioFile(temp_wav.name) as source:
-            audio_data = r.record(source)
-            text = r.recognize_google(audio_data)
-            print(f"🗣️ You said: {text}")
-            return text.lower()
-    except Exception as e:
-        print("⚠️ Could not recognize speech:", e)
+        text = recognizer.recognize_google(audio)
+        print(f"🗣️ You said: {text}")
+        return text
+    except sr.UnknownValueError:
+        print("❌ Sorry, I didn't catch that.")
         return ""
-    finally:
-        os.unlink(temp_wav.name)
+    except sr.RequestError:
+        print("⚠️ Could not connect to the recognition service.")
+        return ""
 
-# -------------------------------------
-# 5️⃣ Weather Function
-# -------------------------------------
-def get_weather(city):
-    if not OPENWEATHER_API_KEY:
-        return "Weather API key is missing."
-    try:
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
-        data = requests.get(url).json()
-        if data.get("cod") != 200:
-            return f"Couldn't find weather data for {city}."
-        desc = data["weather"][0]["description"]
-        temp = data["main"]["temp"]
-        feels_like = data["main"]["feels_like"]
-        humidity = data["main"]["humidity"]
-        return f"The weather in {city} is {desc}. It's {temp}°C, feels like {feels_like}°C, with humidity at {humidity}%."
-    except Exception as e:
-        return f"Error fetching weather: {str(e)}"
-
-# -------------------------------------
-# 6️⃣ Handle all user queries (Gemini)
-# -------------------------------------
-def ask_gemini(prompt):
+# -------------------------------
+# 4️⃣ Gemini Response Function
+# -------------------------------
+def get_gemini_response(prompt):
     try:
         response = model.generate_content(prompt)
-        return response.text.strip()
+        return response.text
     except Exception as e:
-        return f"Gemini error: {str(e)}"
+        print(f"❌ Error generating response: {e}")
+        return "Sorry, something went wrong."
 
-# -------------------------------------
-# 7️⃣ Main loop
-# -------------------------------------
+# -------------------------------
+# 5️⃣ Speak Function
+# -------------------------------
+def speak(text):
+    print(f"\n🤖 Assistant: {text}\n")
+    try:
+        print("🔊 Speaking...")
+        engine.say(text)
+        engine.runAndWait()
+        print("✅ Speech complete")
+    except Exception as e:
+        print(f"❌ Speech error: {e}")
+
+# -------------------------------
+# 6️⃣ Main Assistant Loop
+# -------------------------------
 def main():
-    speak("Hello! I'm your AI Assistant powered by Gemini. How can I help you today?")
+    print("\n" + "="*50)
+    print("🤖 AI Voice Assistant Started")
+    print("="*50 + "\n")
+    
+    speak("Hello! I'm your AI assistant. How can I help you today?")
+    
+    exit_words = ["exit", "quit", "stop", "bye", "goodbye"]
+    
     while True:
-        user_input = listen()
-        if not user_input:
-            speak("Sorry, I didn’t catch that. Can you repeat?")
+        user_input = listen_alt()
+
+        if user_input == "":
             continue
 
-        if any(word in user_input for word in ["exit", "stop", "quit", "goodbye"]):
-            speak("Goodbye! Have a wonderful day.")
+        if any(word in user_input.lower() for word in exit_words):
+            speak("Goodbye! Have a great day!")
             break
 
-        elif "weather" in user_input:
-            speak("Sure! Please tell me the city name.")
-            city = listen()
-            if city:
-                weather = get_weather(city)
-                speak(weather)
-            else:
-                speak("I didn't hear a city name.")
+        ai_reply = get_gemini_response(user_input)
+        speak(ai_reply)
 
-        else:
-            # Generic AI reasoning
-            reply = ask_gemini(user_input)
-            speak(reply)
-
-# -------------------------------------
-# 8️⃣ Run it
-# -------------------------------------
+# -------------------------------
+# 7️⃣ Run Program
+# -------------------------------
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n👋 Program stopped by user")
+    except Exception as e:
+        print(f"\n❌ Fatal error: {e}")
+    finally:
+        print("\n✅ Goodbye!\n")
